@@ -4,10 +4,28 @@ export interface ElementChoix {
     value: number
     title: string
 }
+interface document {
+    value: number
+    title: string
+    nbrafflie: number
+}
+interface docisoref {
+    value: number
+    title: string
+}
+export interface  DocISOInfo {
+    docliste?: document[]
+    docisorefliste?: docisoref []  
+}
 export interface ApiResponseEC {
     success: boolean
     message: string
     data?: ElementChoix[]
+}
+export interface ApiResponseDI {
+    success: boolean
+    message: string
+    data?: DocISOInfo[]
 }
 // Interface générique pour les réponses API
 interface ApiResponse<T> {
@@ -16,8 +34,23 @@ interface ApiResponse<T> {
     data?: T[]
 }
 
+export async function getDocISOInfo(server: string = '', page: string, jsonCriteres: string = '{}'): Promise<ApiResponseDI> {
+    const urlol: string = `${server}${page}`
+    const params = new URLSearchParams([['jsoncriteres', jsonCriteres]])
+    try {
+        const response: AxiosResponse<DocISOInfo[]> = await axios.get(urlol, { params })
+        const respData: ApiResponseDI = {
+            "success": true,
+            "message": `ok`,
+            "data": response.data
+        }
+        return respData
+    } catch (error) {
+        return traiteAxiosError(error as AxiosError)
+    }
+}
+
 export async function getDocsISOListe(server: string = '', page: string, jsonCriteres: string = '{}'): Promise<ApiResponseEC> {
-    console.log(jsonCriteres)
     const urlol: string = `${server}${page}`
     const params = new URLSearchParams([['jsoncriteres', jsonCriteres]])
     try {

@@ -12,39 +12,87 @@
                 <v-spacer></v-spacer>
                 <div style="position: absolute; right: 16px;">
                     Utilisateur: {{ callerInformation?.prenom }} {{ callerInformation?.nom }} ({{
-                    callerInformation?.login }}) - {{ callerInformation?.unite }}
+                        callerInformation?.login }}) - {{ callerInformation?.unite }}
                 </div>
             </v-app-bar>
             <div v-if="messageErreur != ''" id="divErreur">{{ messageErreur }}</div>
-            <div v-if="bISOProcessusSupprime">
-                <div v-if="bGoelandManager" class="d-flex align-items-baseline">
-                    <v-autocomplete v-model="serviceChoisi" label="Service" :items="servicesListeSelect" return-object
-                        class="flex-0-0" style="width: 400px; min-width: 400px;" no-virtual clearable></v-autocomplete>
+            <v-container>
+                <div v-if="bISOProcessusSupprime">
+                    <div v-if="bGoelandManager" class="d-flex align-items-baseline">
+                        <v-autocomplete v-model="serviceChoisi" label="Service" :items="servicesListeSelect"
+                            return-object class="flex-0-0" style="width: 400px; min-width: 400px;" no-virtual
+                            clearable></v-autocomplete>
+                    </div>
+                    <div class="d-flex align-items-baseline">
+                        <v-autocomplete v-model="documentationISOChoisie" :label="docISOLabel"
+                            :items="docsISOListeSelect" return-object class="flex-0-0"
+                            style="width: 1200px; min-width: 400px;" no-virtual clearable></v-autocomplete>
+                    </div>
                 </div>
-                <div class="d-flex align-items-baseline">
-                    <v-autocomplete v-model="documentationISOChoisie" :label="docISOLabel" :items="docsISOListeSelect"
-                        return-object class="flex-0-0" style="width: 1200px; min-width: 400px;" no-virtual
-                        clearable></v-autocomplete>
-                </div>
-            </div>
-            <div v-if="idDocumentationISOChoisie > 0">
-                Documentation ISO à supprimer : {{ nomDocumentationISOChoisie }}
-            </div>
+            </v-container>
+
+            <v-container v-if="idDocumentationISOChoisie > 0">
+                <v-btn color="error" variant="flat" @click="supprime(idDocumentationISOChoisie)">
+  <v-icon start>mdi-delete-forever</v-icon>
+  Confirmer la suppression
+</v-btn>
+                <v-card class="mb-4" elevation="2">
+                    <v-card-title class="text-h6 font-weight-bold">
+                        Documentation ISO à supprimer : {{ nomDocumentationISOChoisie }}
+                    </v-card-title>
+                    <v-card-text>
+                        <v-subheader class="text-h6 font-weight-medium px-0">
+                            {{ labelDocumentLie }}
+                        </v-subheader>
+                        <v-list density="compact" class="py-0">
+                            <v-list-item v-for="element in docISOInfo[0]?.docliste" :key="element.value" class="px-4">
+                                <v-list-item-title>
+                                    <span v-if="element.nbrafflie === 0">{{ element.title }} (sera supprimé)</span>
+                                    <span v-else class="text-warning">
+                                         {{ element.title }} (ne sera pas supprimé,
+                                         <span v-if="element.nbrafflie === 1"> 1 affaire liée)</span>
+                                         <span v-else> {{ element.nbrafflie }} affaires liées)</span>
+                                    </span>
+                                </v-list-item-title>
+                                <template v-slot:prepend>
+                                    <v-icon size="small">mdi-circle-small</v-icon>
+                                </template>
+                            </v-list-item>
+                        </v-list>
+                        <div v-if="nbrDocISORef > 0">
+                        <v-subheader class="text-h6 text-warning font-weight-medium px-0">
+                            {{ labelDocISORef }}
+                        </v-subheader>
+                        <v-list density="compact" class="py-0">
+                            <v-list-item v-for="element in docISOInfo[0]?.docisorefliste" :key="element.value" class="px-4">
+                                <v-list-item-title>
+                                    {{ element.title }}
+                                </v-list-item-title>
+                                <template v-slot:prepend>
+                                    <v-icon size="small">mdi-circle-small</v-icon>
+                                </template>
+                            </v-list-item>
+                        </v-list>
+
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </v-container>
         </v-main>
     </v-app>
 </template>
 
 <script setup lang="ts">
-import type { ElementChoix, ApiResponseEC } from '@/axioscalls.ts'
+import type { ElementChoix, ApiResponseEC, ApiResponseDI, DocISOInfo } from '@/axioscalls.ts'
 import type { ApiResponseUI, UserInfo } from './CallerInfo.vue'
 import type { ApiResponseIG } from './CallerIsInGroup.vue'
 import { ref, computed, watch } from 'vue'
 import CallerInfo from './CallerInfo.vue';
 import CallerIsInGroup from './CallerIsInGroup.vue';
-import { getDocsISOListe, getServicesListe } from '@/axioscalls.ts'
+import { getDocISOInfo, getDocsISOListe, getServicesListe } from '@/axioscalls.ts'
 
-interface CritereRecherche {
-    idservice: number
+interface Critere {
+    id: number
 }
 
 const messageErreur = ref<string>('')
@@ -76,6 +124,25 @@ const documentationISOChoisie = ref<ElementChoix | null>(null)
 const idDocumentationISOChoisie = ref<number>(0)
 const nomDocumentationISOChoisie = ref<string>('')
 const serviceChoisi = ref<ElementChoix | null>(null)
+const docISOInfo = ref<DocISOInfo[]>([])
+
+const labelDocumentLie = computed(() => {
+    const docCount = docISOInfo.value[0]?.docliste?.length ?? 0
+    if (docCount === 0) return 'Aucun document lié'
+    if (docCount === 1) return 'Document lié'
+    return 'Documents liés' //plus que 1
+})
+
+const nbrDocISORef = computed(() => {
+    return docISOInfo.value[0]?.docisorefliste?.length ?? 0
+})
+
+const labelDocISORef = computed(() => {
+    const docISORefCount = docISOInfo.value[0]?.docisorefliste?.length ?? 0
+    if (docISORefCount === 0) return ''
+    if (docISORefCount === 1) return 'Attention 1 documentation ISO fait référence à la documentation ISO à supprimer'
+    return `Attention ${docISORefCount} documentations ISO font référence a la documentation ISO à supprimer` //plus que 1
+})
 
 watch(allDataCallerLoaded, (isLoaded) => {
     if (isLoaded) {
@@ -98,6 +165,7 @@ watch(allDataCallerLoaded, (isLoaded) => {
 
 watch(serviceChoisi, (sChoix) => {
     if (sChoix !== undefined && sChoix !== null) {
+        documentationISOChoisie.value = null
         docISOLabel.value = `documentation ISO: ${sChoix.title}`
         listeDocsISO(sChoix.value)
     }
@@ -107,6 +175,7 @@ watch(documentationISOChoisie, (docChoix) => {
     if (docChoix !== undefined && docChoix !== null) {
         idDocumentationISOChoisie.value = docChoix.value
         nomDocumentationISOChoisie.value = docChoix.title
+        infoDocumentationISO(docChoix.value)
     } else {
         idDocumentationISOChoisie.value = 0
         nomDocumentationISOChoisie.value = ''
@@ -114,8 +183,8 @@ watch(documentationISOChoisie, (docChoix) => {
 })
 
 const listeDocsISO = async (idService: number): Promise<void> => {
-    const oCritere: CritereRecherche = {
-        idservice: idService
+    const oCritere: Critere = {
+        id: idService
     }
     const response: ApiResponseEC = await getDocsISOListe(ssServer.value, '/goeland/documentationiso/axios/documentationiso_liste.php', JSON.stringify(oCritere))
     if (response.success === false) {
@@ -132,7 +201,32 @@ const listeServices = async (): Promise<void> => {
     }
     const returnListe: ElementChoix[] = response.success && response.data ? response.data : []
     servicesListeSelect.value = returnListe
-    console.log(servicesListeSelect.value)
+}
+
+const infoDocumentationISO = async (idDocumentationIso: number): Promise<void> => {
+    const oCritere: Critere = {
+        id: idDocumentationIso
+    }
+    const response: ApiResponseDI = await getDocISOInfo(ssServer.value, '/goeland/documentationiso/axios/documentationiso_docslie_referencepar_data.php', JSON.stringify(oCritere))
+    if (response.success === false) {
+        messageErreur.value += `${response.message}\n`
+    }
+    const returnListe: DocISOInfo[] = response.success && response.data ? response.data : []
+    docISOInfo.value = returnListe
+    console.log(docISOInfo.value[0]?.docliste)
+    console.log(docISOInfo.value[0]?.docisorefliste)
+}
+
+const supprime = (idISOProcessus: number) => {
+    alert("faudra le faire...")
+    idDocumentationISOChoisie.value = 0
+    nomDocumentationISOChoisie.value = ''
+    documentationISOChoisie.value = null
+    if (serviceChoisi.value !== undefined && serviceChoisi.value !== null) {
+        console.log("listeDocsISO")
+        listeDocsISO(serviceChoisi.value.value)
+    }
+    
 }
 
 const receptionCallerInfo = (jsonData: string) => {
@@ -158,8 +252,6 @@ const receptionCallerInGroupGoelandManager = (jsonData: string) => {
         goelandManagerLoaded.value = true
     }
 }
-
-
 </script>
 
 <style scoped>
