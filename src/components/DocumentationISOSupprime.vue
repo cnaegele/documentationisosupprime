@@ -41,13 +41,13 @@
                         Documentation ISO à supprimer : {{ nomDocumentationISOChoisie }}
                     </v-card-title>
                     <v-card-text>
-                        <v-subheader class="text-h6 font-weight-medium px-0">
+                        <div class="text-h6 font-weight-medium px-0">
                             {{ labelDocumentLie }}
-                        </v-subheader>
+                        </div>
                         <v-list density="compact" class="py-0">
                             <v-list-item v-for="element in docISOInfo[0]?.docliste" :key="element.value" class="px-4">
                                 <v-list-item-title>
-                                    <span v-if="element.nbrafflie === 0">{{ element.title }} (sera supprimé)</span>
+                                    <span v-if="element.nbrafflie === 0">{{ element.title }} <span class="text-warning">(sera supprimé)</span></span>
                                     <span v-else class="text-warning">
                                          {{ element.title }} (ne sera pas supprimé,
                                          <span v-if="element.nbrafflie === 1"> 1 affaire liée)</span>
@@ -60,9 +60,9 @@
                             </v-list-item>
                         </v-list>
                         <div v-if="nbrDocISORef > 0">
-                        <v-subheader class="text-h6 text-warning font-weight-medium px-0">
+                        <div class="text-h6 text-warning font-weight-medium px-0">
                             {{ labelDocISORef }}
-                        </v-subheader>
+                        </div>
                         <v-list density="compact" class="py-0">
                             <v-list-item v-for="element in docISOInfo[0]?.docisorefliste" :key="element.value" class="px-4">
                                 <v-list-item-title>
@@ -83,13 +83,13 @@
 </template>
 
 <script setup lang="ts">
-import type { ElementChoix, ApiResponseEC, ApiResponseDI, DocISOInfo } from '@/axioscalls.ts'
+import type { ElementChoix, ApiResponseEC, ApiResponseDI, DocISOInfo, ApiResponse } from '@/axioscalls.ts'
 import type { ApiResponseUI, UserInfo } from './CallerInfo.vue'
 import type { ApiResponseIG } from './CallerIsInGroup.vue'
 import { ref, computed, watch } from 'vue'
 import CallerInfo from './CallerInfo.vue';
 import CallerIsInGroup from './CallerIsInGroup.vue';
-import { getDocISOInfo, getDocsISOListe, getServicesListe } from '@/axioscalls.ts'
+import { getDocISOInfo, getDocsISOListe, getServicesListe, supprimeDocumentationISO } from '@/axioscalls.ts'
 
 interface Critere {
     id: number
@@ -213,20 +213,24 @@ const infoDocumentationISO = async (idDocumentationIso: number): Promise<void> =
     }
     const returnListe: DocISOInfo[] = response.success && response.data ? response.data : []
     docISOInfo.value = returnListe
-    console.log(docISOInfo.value[0]?.docliste)
-    console.log(docISOInfo.value[0]?.docisorefliste)
 }
 
-const supprime = (idISOProcessus: number) => {
+const supprime = async (idISOProcessus: number) => {
     alert("faudra le faire...")
-    idDocumentationISOChoisie.value = 0
-    nomDocumentationISOChoisie.value = ''
-    documentationISOChoisie.value = null
-    if (serviceChoisi.value !== undefined && serviceChoisi.value !== null) {
-        console.log("listeDocsISO")
-        listeDocsISO(serviceChoisi.value.value)
+    const oCritere: Critere = {
+        id: idISOProcessus
     }
-    
+    const response: ApiResponse<number[]> = await supprimeDocumentationISO(ssServer.value, '/goeland/documentationiso/axios/documentationiso_supprime.php')
+    if (response.success === false) {
+        messageErreur.value = `${response.message}\n`
+    } else {   
+        idDocumentationISOChoisie.value = 0
+        nomDocumentationISOChoisie.value = ''
+        documentationISOChoisie.value = null
+        if (serviceChoisi.value !== undefined && serviceChoisi.value !== null) {
+            listeDocsISO(serviceChoisi.value.value)
+        }
+    }   
 }
 
 const receptionCallerInfo = (jsonData: string) => {

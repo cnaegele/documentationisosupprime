@@ -13,9 +13,9 @@ interface docisoref {
     value: number
     title: string
 }
-export interface  DocISOInfo {
+export interface DocISOInfo {
     docliste?: document[]
-    docisorefliste?: docisoref []  
+    docisorefliste?: docisoref[]
 }
 export interface ApiResponseEC {
     success: boolean
@@ -28,7 +28,7 @@ export interface ApiResponseDI {
     data?: DocISOInfo[]
 }
 // Interface générique pour les réponses API
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
     success: boolean
     message: string
     data?: T[]
@@ -81,9 +81,24 @@ export async function getServicesListe(server: string = '', page: string): Promi
     }
 }
 
+export async function supprimeDocumentationISO(server: string = '', page: string, jsonData: string = '{}'): Promise<ApiResponse<number[]>> {
+    const urlsd: string = `${server}${page}`
+    try {
+        const response: AxiosResponse = await axios.post(urlsd, jsonData, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        return traiteAxiosError(error as AxiosError)
+    }
+}
+
 function traiteAxiosError<T>(error: AxiosError): ApiResponse<T> {
     let msgErr: string = ''
-   if (error.response) {
+    if (error.response) {
         msgErr = `${error.response.data}\nstatus: ${error.response.status}\n${error.response.headers}`
     } else if (error.request.responseText) {
         msgErr = error.request.responseText
