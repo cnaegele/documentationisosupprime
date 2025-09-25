@@ -216,11 +216,10 @@ const infoDocumentationISO = async (idDocumentationIso: number): Promise<void> =
 }
 
 const supprime = async (idISOProcessus: number) => {
-    alert("faudra le faire...")
-    const oCritere: Critere = {
+    const oData: Critere = {
         id: idISOProcessus
     }
-    const response: ApiResponse<number[]> = await supprimeDocumentationISO(ssServer.value, '/goeland/documentationiso/axios/documentationiso_supprime.php')
+    const response: ApiResponse<number[]> = await supprimeDocumentationISO(ssServer.value, '/goeland/documentationiso/axios/documentationiso_supprime.php', JSON.stringify(oData))
     if (response.success === false) {
         messageErreur.value = `${response.message}\n`
     } else {   
