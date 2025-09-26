@@ -33,9 +33,9 @@
 
             <v-container v-if="idDocumentationISOChoisie > 0">
                 <v-btn color="error" variant="flat" @click="supprime(idDocumentationISOChoisie)">
-  <v-icon start>mdi-delete-forever</v-icon>
-  Confirmer la suppression
-</v-btn>
+                    <v-icon start>mdi-delete-forever</v-icon>
+                    Confirmer la suppression
+                </v-btn>
                 <v-card class="mb-4" elevation="2">
                     <v-card-title class="text-h6 font-weight-bold">
                         Documentation ISO à supprimer : {{ nomDocumentationISOChoisie }}
@@ -47,11 +47,12 @@
                         <v-list density="compact" class="py-0">
                             <v-list-item v-for="element in docISOInfo[0]?.docliste" :key="element.value" class="px-4">
                                 <v-list-item-title>
-                                    <span v-if="element.nbrafflie === 0">{{ element.title }} <span class="text-warning">(sera supprimé)</span></span>
+                                    <span v-if="element.nbrafflie === 0">{{ element.title }} <span
+                                            class="text-warning">(sera supprimé)</span></span>
                                     <span v-else class="text-warning">
-                                         {{ element.title }} (ne sera pas supprimé,
-                                         <span v-if="element.nbrafflie === 1"> 1 affaire liée)</span>
-                                         <span v-else> {{ element.nbrafflie }} affaires liées)</span>
+                                        {{ element.title }} (ne sera pas supprimé,
+                                        <span v-if="element.nbrafflie === 1"> 1 affaire liée)</span>
+                                        <span v-else> {{ element.nbrafflie }} affaires liées)</span>
                                     </span>
                                 </v-list-item-title>
                                 <template v-slot:prepend>
@@ -60,24 +61,26 @@
                             </v-list-item>
                         </v-list>
                         <div v-if="nbrDocISORef > 0">
-                        <div class="text-h6 text-warning font-weight-medium px-0">
-                            {{ labelDocISORef }}
-                        </div>
-                        <v-list density="compact" class="py-0">
-                            <v-list-item v-for="element in docISOInfo[0]?.docisorefliste" :key="element.value" class="px-4">
-                                <v-list-item-title>
-                                    {{ element.title }}
-                                </v-list-item-title>
-                                <template v-slot:prepend>
-                                    <v-icon size="small">mdi-circle-small</v-icon>
-                                </template>
-                            </v-list-item>
-                        </v-list>
-
+                            <div class="text-h6 text-warning font-weight-medium px-0">
+                                {{ labelDocISORef }}
+                            </div>
+                            <v-list density="compact" class="py-0">
+                                <v-list-item v-for="element in docISOInfo[0]?.docisorefliste" :key="element.value"
+                                    class="px-4">
+                                    <v-list-item-title>
+                                        {{ element.title }}
+                                    </v-list-item-title>
+                                    <template v-slot:prepend>
+                                        <v-icon size="small">mdi-circle-small</v-icon>
+                                    </template>
+                                </v-list-item>
+                            </v-list>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-container>
+            <div v-if="messageLog != ''" id="divLog">{{ messageLog }}</div>
+
         </v-main>
     </v-app>
 </template>
@@ -95,6 +98,7 @@ interface Critere {
     id: number
 }
 
+const messageLog = ref<string>('')
 const messageErreur = ref<string>('')
 const ssServer = ref<string>('')
 if (import.meta.env.DEV) {
@@ -222,14 +226,18 @@ const supprime = async (idISOProcessus: number) => {
     const response: ApiResponse<number[]> = await supprimeDocumentationISO(ssServer.value, '/goeland/documentationiso/axios/documentationiso_supprime.php', JSON.stringify(oData))
     if (response.success === false) {
         messageErreur.value = `${response.message}\n`
-    } else {   
+    } else {
+        if (messageLog.value !== "") {
+            messageLog.value += `\n`    
+        }
+        messageLog.value += `Supression effectuée de ${nomDocumentationISOChoisie.value}`
         idDocumentationISOChoisie.value = 0
         nomDocumentationISOChoisie.value = ''
         documentationISOChoisie.value = null
         if (serviceChoisi.value !== undefined && serviceChoisi.value !== null) {
             listeDocsISO(serviceChoisi.value.value)
         }
-    }   
+    }
 }
 
 const receptionCallerInfo = (jsonData: string) => {
@@ -260,6 +268,20 @@ const receptionCallerInGroupGoelandManager = (jsonData: string) => {
 <style scoped>
 #divErreur {
     background-color: lightsalmon;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 0px;
+    padding: 5px;
+    border-style: solid;
+    border-width: thin;
+    border-color: black;
+    border-radius: 20px;
+    white-space: pre-line;
+    /* Convertit les \n en sauts de ligne */
+}
+#divLog {
+    font-size: small;
+    background-color: rgb(234, 238, 238);
     margin-left: 5px;
     margin-right: 5px;
     margin-top: 0px;

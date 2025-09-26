@@ -89,7 +89,6 @@ export async function supprimeDocumentationISO(server: string = '', page: string
                 'Content-Type': 'application/json'
             }
         })
-        console.log(response.data)
         return response.data
     } catch (error) {
         return traiteAxiosError(error as AxiosError)
