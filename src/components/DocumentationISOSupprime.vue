@@ -52,9 +52,9 @@
                                     <span v-else class="text-warning">
                                         {{ element.title }} (ne sera pas supprimé,
                                         <span v-if="element.nbrafflie === 1"> 1 affaire liée</span>
-                                        <span v-else> {{ element.nbrafflie }} affaires liées</span>
+                                        <span v-if="element.nbrafflie > 1"> {{ element.nbrafflie }} affaires liées</span>
                                         <span v-if="element.nbrautredocisolie === 1"> 1 autre documentation ISO liée</span>
-                                        <span v-else> {{ element.nbrautredocisolie }} autres documentations ISO liées</span>
+                                        <span v-if="element.nbrautredocisolie > 1"> {{ element.nbrautredocisolie }} autres documentations ISO liées</span>
                                         )
                                     </span>
                                 </v-list-item-title>
