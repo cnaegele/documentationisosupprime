@@ -8,6 +8,7 @@ interface document {
     value: number
     title: string
     nbrafflie: number
+    nbrautredocisolie: number
 }
 interface docisoref {
     value: number

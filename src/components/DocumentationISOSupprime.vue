@@ -47,12 +47,15 @@
                         <v-list density="compact" class="py-0">
                             <v-list-item v-for="element in docISOInfo[0]?.docliste" :key="element.value" class="px-4">
                                 <v-list-item-title>
-                                    <span v-if="element.nbrafflie === 0">{{ element.title }} <span
+                                    <span v-if="element.nbrafflie === 0 && element.nbrautredocisolie === 0">{{ element.title }} <span
                                             class="text-warning">(sera supprimé)</span></span>
                                     <span v-else class="text-warning">
                                         {{ element.title }} (ne sera pas supprimé,
-                                        <span v-if="element.nbrafflie === 1"> 1 affaire liée)</span>
-                                        <span v-else> {{ element.nbrafflie }} affaires liées)</span>
+                                        <span v-if="element.nbrafflie === 1"> 1 affaire liée</span>
+                                        <span v-else> {{ element.nbrafflie }} affaires liées</span>
+                                        <span v-if="element.nbrautredocisolie === 1"> 1 autre documentation ISO liée</span>
+                                        <span v-else> {{ element.nbrautredocisolie }} autres documentations ISO liées</span>
+                                        )
                                     </span>
                                 </v-list-item-title>
                                 <template v-slot:prepend>
