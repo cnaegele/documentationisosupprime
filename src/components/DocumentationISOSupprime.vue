@@ -239,6 +239,8 @@ const supprime = async (idISOProcessus: number) => {
         documentationISOChoisie.value = null
         if (serviceChoisi.value !== undefined && serviceChoisi.value !== null) {
             listeDocsISO(serviceChoisi.value.value)
+        } else if (callerInformation.value !== undefined && callerInformation.value !== null) {
+            listeDocsISO(callerInformation.value.idservice)
         }
     }
 }
